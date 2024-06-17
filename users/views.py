@@ -1,10 +1,10 @@
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render
-from django.contrib.auth import authenticate, login as auth_login
+from django.contrib.auth import authenticate, login as auth_login, logout as auth_logout
 from django.urls import reverse
 
 
-from users.forms import UserLoginForm
+from users.forms import UserLoginForm, UserRegistrationForm
 
 
 def login(request):
@@ -36,8 +36,23 @@ def login(request):
 
 
 def registration(request):
+     # Проверка была ли попытка авторизации 
+    if request.method == 'POST':
+        form = UserRegistrationForm(data=request.POST)
+        # Проверка на соответстие форме !ТОЧНЫЕ НАЗВАНИЯ ПОЛЕЙ х)!
+        if form.is_valid():
+            form.save()
+            user = form.instance
+            auth_login(request, user)
+            return HttpResponseRedirect(reverse('main:index'))
+    # Иначе считаем, что пользователь не пытался авторизироваться и подготавливаем страничку авторизации
+    else:
+        form = UserRegistrationForm()
+
+    
     context = {
         "title": "Регистрация - Home",
+        "form": form,
     }
     return render(request, "users/registration.html", context=context)
 
@@ -50,4 +65,5 @@ def profile(request):
 
 
 def logout(request):
-    pass
+    auth_logout(request)
+    return HttpResponseRedirect(reverse('main:index'))
