@@ -23,8 +23,12 @@ def login(request):
             if user:
                 # Авторизация на сайте
                 auth_login(request, user)
-                # Переброс на целевую страницу после успешной авторизации
                 messages.success(request, f"{user.username}, Вы успешно вошли в аккаунт")
+                # Переброс на целевую страницу после успешной авторизации
+                
+                if request.POST.get('next', None):
+                    return HttpResponseRedirect(request.POST.get('next'))
+                
                 return HttpResponseRedirect(reverse('main:index'))
     # Иначе считаем, что пользователь не пытался авторизироваться и подготавливаем страничку авторизации
     else:
