@@ -1,4 +1,5 @@
-from django.shortcuts import redirect, render
+from django.shortcuts import redirect
+from numpy import delete
 
 from carts.models import Cart
 from goods.models import Products
@@ -27,5 +28,8 @@ def cart_change(request, product_slug):
     pass
 
 
-def cart_remove(request, product_slug):
-    pass
+def cart_remove(request, cart_id):
+    cart = Cart.objects.get(id=cart_id)
+    cart.delete()
+    
+    return redirect(request.META["HTTP_REFERER"]) 
