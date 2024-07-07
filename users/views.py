@@ -6,6 +6,7 @@ from django.contrib.auth import authenticate, login as auth_login, logout as aut
 from django.urls import reverse
 
 
+from carts.models import Cart
 from users.forms import ProfileForm, UserLoginForm, UserRegistrationForm
 
 
@@ -21,8 +22,11 @@ def login(request):
             user = authenticate(username=username, password=password)
             # Проверка на успешность
             if user:
+                session_key = request.session.session_key
                 # Авторизация на сайте
                 auth_login(request, user)
+                if session_key:
+                    Cart.objects.filter(session_key=session_key).update(user=user)
                 messages.success(
                     request, f"{user.username}, Вы успешно вошли в аккаунт"
                 )
@@ -53,7 +57,10 @@ def registration(request):
             form.save()
             user = form.instance
             messages.success(request, f"{user.username}, Вы успешно создали аккаунт")
+            session_key = request.session.session_key
             auth_login(request, user)
+            if session_key:
+                Cart.objects.filter(session_key=session_key).update(user=user)
             return HttpResponseRedirect(reverse("main:index"))
     # Иначе считаем, что пользователь не пытался авторизироваться и подготавливаем страничку авторизации
     else:
